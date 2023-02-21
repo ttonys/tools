@@ -102,10 +102,10 @@ done
 # 检查命令是否存在
 echo -e "*****开始执行参数检查*****"
 programExists go
-# programExists git
-# programExists python
-# programExists ./puredns
-# programExists massdns
+programExists git
+programExists python
+programExists ./puredns
+programExists massdns
 echo -e "*****结束执行参数检查*****\n"
 if [[ "$Start" == "false" && "$Install" == "false" ]]; then
     exit -1
