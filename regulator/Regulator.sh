@@ -103,7 +103,7 @@ done
 echo -e "*****开始执行参数检查*****"
 programExists go
 programExists git
-programExists python
+programExists python3
 programExists ./puredns
 programExists massdns
 echo -e "*****结束执行参数检查*****\n"
