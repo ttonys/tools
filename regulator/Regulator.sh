@@ -33,12 +33,12 @@ function programExists() {
 
 
 function installProgram() {
-    echo -e "\033[36m下载https://github.com/cramppet/regulator \033[0m"
-    git clone https://github.com/cramppet/regulator
+    # echo -e "\033[36m下载https://github.com/cramppet/regulator \033[0m"
+    # git clone https://github.com/cramppet/regulator
 
 
     echo -e "\033[36m安装regulator依赖 \033[0m"
-    cd ./regulator && pip install -r requirements.txt
+    pip install -r requirements.txt
     if [[ $? -ne 0 ]]; then
         exit -1
     fi
@@ -73,20 +73,18 @@ function installProgram() {
 
 function execRegulator() {
     echo -e "\033[36m生成规则文件 \033[0m"
-    cd ./regulator && python3 main.py -t $1 -f $2 -o "../"$1".rules"
+    python3 main.py -t $1 -f $2 -o "./result/"$1".rules"
     if [[ $? -ne 0 ]]; then
         exit -1
     fi
 
 
     echo -e "\033[36m生成子域名爆破文件 \033[0m"
-    cd ../ && ./make_brute_list.sh ./regulator/$1".rules" $1".brute"
+    ./make_brute_list.sh "./result/"$1".rules" "./result/"$1".brute"
 
 
     echo -e "\033[36mDNS验证子域名 \033[0m"
-    ./puredns resolve $1".brute" --write $1".valid"
-
-    # todo: 1、输出到result文件 2、文件路径问题
+    ./puredns resolve "./result/"$1".brute" --write "./result/"$1".valid"
 }
 
 
@@ -123,18 +121,11 @@ fi
 
 
 if [[ "$SubFile" != "" && $Domain != "" ]]; then
-    # if [[ "$Domain" != /* ]]; then
-    #     Domain=`cd $(dirname $Domain); pwd`
-    # fi
-    
-    if [[ "$SubFile" != /* ]]; then
-        SubDomain=`cd $(dirname $SubFile); pwd`
-    fi
 
     echo $Domain
-    echo $SubDomain
+    echo $NewSubFile
     echo -e "*****开始执行Regulator*****"
-    # execRegulator $Domain $SubFile
+    execRegulator $Domain $SubFile
     echo -e "*****结束执行Regulator*****\n"
 fi
 
