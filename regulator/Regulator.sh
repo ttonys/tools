@@ -4,7 +4,7 @@
 func() {
     echo "目前仅支持GNU/Linux平台"
     echo "Usage:"
-    echo "regulator.sh [-f SubDomain File] [-d Domain name] [-i]"
+    echo "Regulator.sh [-f SubDomain File] [-d Domain name] [-i]"
     echo "Description:"
     echo "-f 指定子域名文件 example: -f sub.txt"
     echo "-d 指定扫描的域名 example: -d baidu"
