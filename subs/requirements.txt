@@ -1,1 +1,6 @@
 requests
+dank
+datrie
+dnspython
+tldextract
+editdistance
