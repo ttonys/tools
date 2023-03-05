@@ -2,7 +2,7 @@
 
 
 func() {
-    echo "子域名扫描脚本(ASN/Brute)"
+    echo "子域名扫描脚本(ASN/Brute/CRT)"
     echo "Usage:"
     echo "Subs.sh [-d Domain name] [-a ASN] [-w Wrod List]"
     echo "Description:"
@@ -67,6 +67,8 @@ programExists dnsx
 programExists amass
 programExists massdns
 programExists httpx
+programExists assetfinder
+programExists ./findoamin
 echo -e "*****结束执行参数检查*****\n"
 
 # 命令不全不执行shell
@@ -100,11 +102,37 @@ fi
 
 
 # subfinder查找域名
-if [[ "$WordList" != "" && "$Domain" != "" ]]; then
+if [[ "$Domain" != "" ]]; then
     echo -e "*****开始执行Subfinder*****"
     subfinder -d $Domain -o ./result/$Domain.subfinder.txt
     echo -e "*****结束执行Subfinder*****\n"
 fi
+
+
+# https://crt.sh查找域名
+if [[ "$Domain" != "" ]]; then
+    echo -e "*****开始执行CTRF(https://crt.sh)*****"
+    python ctrf.py -d $Domain -o ./result/$Domain.ctrf.txt
+    echo -e "*****结束执行CTRF(https://crt.sh)*****\n"
+fi
+
+
+# assetfinder查找域名
+if [[ "$Domain" != "" ]]; then
+    echo -e "*****开始执行Assetfinder*****"
+    assetfinder --subs-only $Domain | tee -a ./result/$Domain.assetfinder.txt
+    echo -e "*****结束执行Assetfinder*****\n"
+fi
+
+
+# findoamin查找域名
+if [[ "$Domain" != "" ]]; then
+    echo -e "*****开始执行Findoamin*****"
+    ./findoamin --quiet -t $Domain -u ./result/$Domain.findoamin.txt
+    echo -e "*****结束执行Findoamin*****\n"
+fi
+
+
 
 
 
