@@ -13,7 +13,7 @@ func() {
 }
 
 Start="true"
-WordList="~/SecLists/Discovery/DNS/subdomains-top1million-110000.txt"
+WordList="/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt"
 
 
 function programExists() {
@@ -86,19 +86,28 @@ echo -e "\n"
 if [[ "$ASN" != "" ]]; then
     echo -e "*****ASN*****"
     echo -e "[Shell] whois -h whois.radb.net  -- '-i origin $ASN' | grep -Eo \"([0-9.]+){4}/[0-9]+\" | uniq | mapcidr -silent | dnsx -ptr -resp-only"
-    whois -h whois.radb.net  -- "-i origin $ASN" | grep -Eo "([0-9.]+){4}/[0-9]+" | uniq | mapcidr -silent | dnsx -ptr -resp-only
+    whois -h whois.radb.net  -- "-i origin $ASN" | grep -Eo "([0-9.]+){4}/[0-9]+" | uniq | mapcidr -silent | dnsx -ptr -resp-only | tee -a ./result/$ASN.txt
     echo -e "*****ASN*****\n"
 fi
 
 
-# 暴力破解域名
-# if [[ "$WordList" != ""]]; then
+# amass暴力破解域名
+if [[ "$WordList" != "" && "$Domain" != "" ]]; then
+    echo -e "*****开始执行Amass遍历*****"
+    amass enum -active -d $Domain -brute -w $WordList -o ./result/$Domain.amass.txt
+    echo -e "*****结束执行Amass遍历*****\n"
+fi
 
-#     echo -e "*****开始执行Subs*****"
-#     echo -e "*****结束执行Subs*****\n"
-# fi
 
 # subfinder查找域名
+if [[ "$WordList" != "" && "$Domain" != "" ]]; then
+    echo -e "*****开始执行Subfinder*****"
+    subfinder -d $Domain -o ./result/$Domain.subfinder.txt
+    echo -e "*****结束执行Subfinder*****\n"
+fi
 
 
 
+# 结果去重
+# cat ./result/$Domain.subfinder.txt ./result/$Domain.amass.txt > ./result/$Domain.subs.unsort.txt
+# sort -n ./result/$Domain.subs.unsort.txt | uniq | tee -a ./result/$Domain.subs.txt
