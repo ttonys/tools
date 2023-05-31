@@ -3,3 +3,6 @@ subs/result/*.txt
 subs/subdomains/*.txt
 subs/logs/*.txt
 subs/logs/*.log
+subdomains-hackerone
+domains3.txt
+test.sh

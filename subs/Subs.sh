@@ -131,26 +131,31 @@ if [[ $Domain != "" && $DomainScan == true ]]; then
 fi
 
 
-# findoamin查找域名
+# findomain查找域名
 if [[ $Domain != "" && $DomainScan == true ]]; then
-    echo -e "*****开始执行Findoamin*****"
-    ./findoamin --quiet -t $Domain -u ./result/$Domain.findoamin.txt
-    echo -e "*****结束执行Findoamin*****\n"
+    echo -e "*****开始执行Findomain*****"
+    ./findomain --quiet -t $Domain -u ./result/$Domain.findomain.txt
+    echo -e "*****结束执行Findomain*****\n"
 fi
 
 
 # 结果去重
 if [[ $Domain != "" && $DomainScan == true ]]; then
-    echo -e "*****开始执行去重[ASN/Amass/Subfinder/CTRF/Assetfinder/Findoamin]*****"
-    cat ./result/$ASN.txt \
+    echo -e "*****开始执行去重[ASN/Amass/Subfinder/CTRF/Assetfinder/Findomain]*****"
+    # cat ./result/$ASN.txt \
+    # ./result/$Domain.amass.txt \
+    # ./result/$Domain.subfinder.txt \
+    # ./result/$Domain.ctrf.txt \
+    # ./result/$Domain.assetfinder.txt \
+    # ./result/$Domain.findomain.txt > ./result/$Domain.subs.unsort.txt
+    cat ./result/$Domain.subfinder.txt \
     ./result/$Domain.amass.txt \
-    ./result/$Domain.subfinder.txt \
     ./result/$Domain.ctrf.txt \
     ./result/$Domain.assetfinder.txt \
-    ./result/$Domain.findoamin.txt > ./result/$Domain.subs.unsort.txt
+    ./result/$Domain.findomain.txt > ./result/$Domain.subs.unsort.txt
     sort ./result/$Domain.subs.unsort.txt | uniq | tee $SubFile
     echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $SubFile \033[0m"
-    echo -e "*****结束执行去重[ASN/Amass/Subfinder/CTRF/Assetfinder/Findoamin]*****\n"
+    echo -e "*****结束执行去重[ASN/Amass/Subfinder/CTRF/Assetfinder/Findomain]*****\n"
 fi
 
 
