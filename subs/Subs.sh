@@ -18,7 +18,7 @@ ASN="null"
 Start=flase
 SubFuzz=false
 DomainScan=false
-WordList="/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt"
+WordList="/Users/sys71m/Tools/wordlist/SecLists/Discovery/DNS/subdomains-top1million-110000.txt"
 
 
 function programExists() {
@@ -57,7 +57,8 @@ programExists dnsx
 programExists amass
 programExists massdns
 programExists httpx
-programExists assetfinder
+# programExists assetfinder
+programExists anew
 programExists ./findomain
 programExists ./puredns
 echo -e "*****结束执行参数检查*****\n"
@@ -124,11 +125,11 @@ fi
 
 
 # assetfinder查找域名
-if [[ $Domain != "" && $DomainScan == true ]]; then
-    echo -e "*****开始执行Assetfinder*****"
-    assetfinder --subs-only $Domain | tee ./result/$Domain.assetfinder.txt
-    echo -e "*****结束执行Assetfinder*****\n"
-fi
+# if [[ $Domain != "" && $DomainScan == true ]]; then
+#     echo -e "*****开始执行Assetfinder*****"
+#     assetfinder --subs-only $Domain | tee ./result/$Domain.assetfinder.txt
+#     echo -e "*****结束执行Assetfinder*****\n"
+# fi
 
 
 # findomain查找域名
@@ -151,9 +152,7 @@ if [[ $Domain != "" && $DomainScan == true ]]; then
     cat ./result/$Domain.subfinder.txt \
     ./result/$Domain.amass.txt \
     ./result/$Domain.ctrf.txt \
-    ./result/$Domain.assetfinder.txt \
-    ./result/$Domain.findomain.txt > ./result/$Domain.subs.unsort.txt
-    sort ./result/$Domain.subs.unsort.txt | uniq | tee $SubFile
+    ./result/$Domain.findomain.txt | anew $SubFile
     echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $SubFile \033[0m"
     echo -e "*****结束执行去重[ASN/Amass/Subfinder/CTRF/Assetfinder/Findomain]*****\n"
 fi
