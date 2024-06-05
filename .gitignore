@@ -6,3 +6,4 @@ subs/logs/*.log
 subdomains-hackerone
 domains3.txt
 test.sh
+.idea
