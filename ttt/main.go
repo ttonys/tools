@@ -9,8 +9,10 @@ import (
 	"github.com/yosssi/gohtml"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type HttpxOutput struct {
@@ -25,6 +27,19 @@ type HttpxOutput struct {
 	RawHeader   string `json:"raw_header"`
 	Request     string `json:"request"`
 	Body        string `json:"body"`
+}
+
+func sanitizeFileName(name string) string {
+	return strings.ReplaceAll(name, "/", "_")
+}
+
+func getHostName(rawurl string) (string, error) {
+	parsedURL, err := url.Parse(rawurl)
+	if err != nil {
+		return "", err
+	}
+	host := parsedURL.Hostname()
+	return host, nil
 }
 
 func main() {
@@ -58,6 +73,12 @@ func main() {
 			return
 		}
 
+		// Trim any trailing newline characters
+		line = bytes.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+
 		var output HttpxOutput
 		rawJSON := line
 		err = json.Unmarshal(rawJSON, &output)
@@ -66,7 +87,13 @@ func main() {
 			continue
 		}
 
-		hostDir := filepath.Join(outDir, output.Input)
+		host, err := getHostName(output.URL)
+		if err != nil {
+			fmt.Println("Error parsing URL:", err)
+			continue
+		}
+
+		hostDir := filepath.Join(outDir, sanitizeFileName(host))
 		if _, err := os.Stat(hostDir); os.IsNotExist(err) {
 			os.Mkdir(hostDir, 0755)
 		}
@@ -75,7 +102,6 @@ func main() {
 		urlFilePath := filepath.Join(hostDir, hash)
 		jsonFilePath := urlFilePath + ".json"
 
-		// 格式化 JSON 数据
 		var formattedRawJSON bytes.Buffer
 		err = json.Indent(&formattedRawJSON, rawJSON, "", "  ")
 		if err != nil {
@@ -83,14 +109,12 @@ func main() {
 			continue
 		}
 
-		// 保存格式化后的 JSON 内容
 		err = ioutil.WriteFile(jsonFilePath, formattedRawJSON.Bytes(), 0644)
 		if err != nil {
 			fmt.Println("Error writing JSON file:", err)
 			continue
 		}
 
-		// 对 HTML body 进行格式化
 		formattedBody := gohtml.Format(output.Body)
 
 		detailedResponse := fmt.Sprintf("%s\n\n%s\n\n%s\n\n%s\n",
@@ -105,8 +129,7 @@ func main() {
 			continue
 		}
 
-		// 去掉当前目录部分的路径
-		relativeURLFilePath := filepath.Join(output.Input, hash)
+		relativeURLFilePath := filepath.Join(sanitizeFileName(host), hash)
 		relativeJSONFilePath := relativeURLFilePath + ".json"
 
 		globalIndexEntry := fmt.Sprintf("%s %s (%d %s)\n", relativeURLFilePath, output.URL, output.StatusCode, output.Title)
