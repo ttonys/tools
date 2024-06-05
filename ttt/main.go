@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/yosssi/gohtml"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,11 +47,20 @@ func main() {
 	}
 	defer index2File.Close()
 
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("Error reading input:", err)
+			return
+		}
+
 		var output HttpxOutput
-		rawJSON := scanner.Bytes()
-		err := json.Unmarshal(rawJSON, &output)
+		rawJSON := line
+		err = json.Unmarshal(rawJSON, &output)
 		if err != nil {
 			fmt.Println("Error unmarshalling JSON:", err)
 			continue
@@ -126,9 +136,5 @@ func main() {
 		}
 		defer localIndex2File.Close()
 		localIndex2File.WriteString(localIndex2Entry)
-	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading input:", err)
 	}
 }
