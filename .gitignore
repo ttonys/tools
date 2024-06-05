@@ -7,3 +7,4 @@ subdomains-hackerone
 domains3.txt
 test.sh
 .idea
+.DS_Store
