@@ -1,23 +1,15 @@
+## 子域名枚举脚本(subs)
 
-
-## tools
-
-
-
-> 子域名枚举脚本(subs)
-
-#### 安装
-- python（版本python3）
-- pip install -r requirements.txt
+> `subs.sh` 是一个用于子域名扫描的脚本
 
 #### 使用
-- 仅进行子域名扫描: `cd subs && ./Subs -d example.com`
-- 进行子域名扫描并fuzz: `cd subs && ./Subs -d example.com -x`
-- 仅进行fuzz: `cd subs && ./Subs -d example.com -f subs.txt -x`
+```
+./subs.sh -d example.com -w ~/subdomains.txt -o /tmp/res
+```
 
 
 
-> httpx处理工具(ttt)
+## httpx处理工具(ttt)
 
 `ttt` 是一个用于处理 `httpx` 输出的 Go 工具。该工具会将扫描结果归类并生成索引文件。
 
@@ -76,3 +68,16 @@ out/
 ```
 ./a813f9c4a94fb48076757e8526ddf28409ab2059.json https://www.example.com (404 Not Found)
 ```
+
+
+
+## crt.sh获取子域名(crt)
+
+> 从crt.sh获取子域名
+
+#### 使用
+
+```
+go install github.com/ttonys/tools/crt@latest
+```
+
