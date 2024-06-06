@@ -11,7 +11,8 @@ func() {
     exit 1
 }
 
-WordList="/Users/sys71m/Tools/wordlist/SecLists/Discovery/DNS/subdomains-top1million-110000.txt"
+#WordList="/Users/sys71m/Tools/wordlist/SecLists/Discovery/DNS/subdomains-top1million-110000.txt"
+WordList="/Users/sys71m/Tools/wordlist/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
 
 function programExists() {
     local ret='0'
@@ -78,26 +79,24 @@ echo -e "*****结束执行Subfinder*****\n"
 
 
 # https://crt.sh查找域名
-# https://github.com/UnaPibaGeek/ctfr
-echo -e "*****开始执行CTRF(https://crt.sh)*****"
-python ctfr.py -d $Domain -o $OutputDir/$Domain.ctrf.txt
-cat $OutputDir/$Domain.ctrf.txt | anew $OutputDir/subs.txt
-rm $OutputDir/$Domain.ctrf.txt
-echo -e "*****结束执行CTRF(https://crt.sh)*****\n"
+# go install github.com/ttonys/tools/crt@latest
+echo -e "*****开始执行crt(https://crt.sh)*****"
+crt -d $Domain | anew $OutputDir/subs.txt
+echo -e "*****结束执行crt(https://crt.sh)*****\n"
 
 
 # chaos
 # https://github.com/projectdiscovery/chaos-client
-# chaos -d $Domain -o $OutputDir/$Domain.chaos.txt
-# echo -e "*****开始执行Chaos*****"
-# chaos -d $Domain | anew $OutputDir/subs.txt
-# echo -e "*****结束执行Chaos*****\n"
+#chaos -d $Domain -o $OutputDir/$Domain.chaos.txt
+echo -e "*****开始执行Chaos*****"
+chaos -d $Domain | anew $OutputDir/subs.txt
+echo -e "*****结束执行Chaos*****\n"
 
 # dnsx enum
 # https://github.com/projectdiscovery/dnsx
 # dnsx -silent -d $Domain -w $WordList -o $OutputDir/$Domain.dnsx.txt
 echo -e "*****开始执行Dnsx*****"
-dnsx -silent -d $Domain -w $WordList | anew $OutputDir/subs.txt
+dnsx -t 10 -rl 10 -stats -silent -d $Domain -w $WordList | anew $OutputDir/subs.txt
 echo -e "*****结束执行Dnsx*****\n"
 
 
@@ -107,11 +106,11 @@ echo -e "*****结束执行Dnsx*****\n"
 echo -e "*****开始执行(dnsgen + alterx)*****"
 cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
 cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
-cat $OutputDir/subs.enum.txt | dnsx -silent | anew $OutputDir/subs.txt
+cat $OutputDir/subs.enum.txt | dnsx -silent -t 10 -rl 10 -stats | anew $OutputDir/subs.txt
 echo -e "*****结束执行(dnsgen + alterx)*****\n"
 
 
 echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $OutputDir/subs.txt \033[0m"
 
 echo -e "\033[32m执行Slack通知 \033[0m"
-cat $OutputDir/subs.txt | anew $OutputDir/subs.notify.txt | wc -l
+cat $OutputDir/subs.txt | anew $OutputDir/subs.notify.txt | notify -bulk
