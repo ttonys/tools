@@ -101,7 +101,7 @@ echo -e "*****结束执行Chaos*****\n"
 # dnsx enum
 # https://github.com/projectdiscovery/dnsx
 echo -e "*****开始执行Dnsx*****"
-dnsx -t 10 -rl 10 -stats -silent -d $Domain -w $WordList | anew $OutputDir/subs.txt
+dnsx -t 10 -rl 10 -stats -d $Domain -w $WordList | anew $OutputDir/subs.txt
 echo -e "*****结束执行Dnsx*****\n"
 
 # dnsgen + alterx -> enum
@@ -110,7 +110,7 @@ echo -e "*****结束执行Dnsx*****\n"
 echo -e "*****开始执行(dnsgen + alterx)*****"
 cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
 cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
-cat $OutputDir/subs.enum.txt | dnsx -stats -silent -t 10 -rl 10 | anew $OutputDir/subs.txt
+cat $OutputDir/subs.enum.txt | dnsx -stats  -t 10 -rl 10 | anew $OutputDir/subs.txt
 echo -e "*****结束执行(dnsgen + alterx)*****\n"
 
 echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $OutputDir/subs.txt \033[0m"
