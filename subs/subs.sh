@@ -3,13 +3,13 @@
 func() {
     echo "子域名扫描脚本(Subfinder/Dnsx/Alterx/...)"
     echo "Usage:"
-    echo "Subs.sh [-d Domain name] [-w Word List] [-o Output Directory] [-p Proxy] [-simple]"
+    echo "Subs.sh [-d Domain name] [-w Word List] [-o Output Directory] [-p Proxy] [-s SimpleMode]"
     echo "Description:"
     echo "-d 指定域名 example: -d example.com"
     echo "-w 指定域名爆破字典 example: -w ~/subdomains-top1000.txt"
     echo "-o 指定文件保存路径 example: -o /path/to/output"
     echo "-p 指定SOCKS代理 example: -p socks5://127.0.0.1:1080"
-    echo "-s 简单模式，不执行dnsgen + alterx操作"
+    echo "-s 简单模式，不执行dns枚举操作"
     exit 1
 }
 
@@ -101,23 +101,23 @@ echo -e "*****开始执行Chaos*****"
 chaos -d $Domain | anew $OutputDir/subs.txt
 echo -e "*****结束执行Chaos*****\n"
 
-# dnsx enum
-# https://github.com/projectdiscovery/dnsx
-echo -e "*****开始执行Dnsx*****"
-dnsx -t 10 -rl 10 -stats -d $Domain -w $WordList | anew $OutputDir/subs.txt
-echo -e "*****结束执行Dnsx*****\n"
+if [[ -z "$SimpleMode" ]]; then
+    # dnsx enum
+    # https://github.com/projectdiscovery/dnsx
+    echo -e "*****开始执行Dnsx*****"
+    dnsx -t 10 -rl 10 -stats -d $Domain -w $WordList | anew $OutputDir/subs.txt
+    echo -e "*****结束执行Dnsx*****\n"
 
-# dnsgen + alterx -> enum
-# https://github.com/AlephNullSK/dnsgen
-# https://github.com/projectdiscovery/alterx
-if [[ -n "$SimpleMode" ]]; then
+    # dnsgen + alterx -> enum
+    # https://github.com/AlephNullSK/dnsgen
+    # https://github.com/projectdiscovery/alterx
     echo -e "*****开始执行(dnsgen + alterx)*****"
     cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
     cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
     cat $OutputDir/subs.enum.txt | dnsx -t 10 -rl 10 -stats | anew $OutputDir/subs.txt
     echo -e "*****结束执行(dnsgen + alterx)*****\n"
 else
-    echo -e "\033[32m[SimpleMode] 跳过dnsgen + alterx操作 \033[0m"
+    echo -e "\033[32m[SimpleMode] 跳过dnsx、dnsgen + alterx操作 \033[0m"
 fi
 
 echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $OutputDir/subs.txt \033[0m"
