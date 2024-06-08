@@ -3,12 +3,13 @@
 func() {
     echo "子域名扫描脚本(Subfinder/Dnsx/Alterx/...)"
     echo "Usage:"
-    echo "Subs.sh [-d Domain name] [-w Word List] [-o Output Directory] [-p Proxy]"
+    echo "Subs.sh [-d Domain name] [-w Word List] [-o Output Directory] [-p Proxy] [-simple]"
     echo "Description:"
     echo "-d 指定域名 example: -d example.com"
     echo "-w 指定域名爆破字典 example: -w ~/subdomains-top1000.txt"
     echo "-o 指定文件保存路径 example: -o /path/to/output"
-    echo "-p 指定SOCKS代理 example: -p 127.0.0.1:1080"
+    echo "-p 指定SOCKS代理 example: -p socks5://127.0.0.1:1080"
+    echo "-simple 简单模式，不执行dnsgen + alterx操作"
     exit 1
 }
 
@@ -29,12 +30,13 @@ function programExists() {
 }
 
 # 获取参数
-while getopts 'h:a:d:w:f:o:p:' OPT; do
+while getopts 'h:a:d:w:f:o:p:simple' OPT; do
     case $OPT in
         d) Domain="$OPTARG";;
         w) WordList="$OPTARG";;
         o) OutputDir="$OPTARG";;
         p) Proxy="$OPTARG";;
+        simple) SimpleMode=true;;
         h) func;;
         ?) func;;
     esac
@@ -70,6 +72,7 @@ echo -e "\033[32m[Domain]     $Domain \033[0m"
 echo -e "\033[32m[WordList]   $WordList \033[0m"
 echo -e "\033[32m[OutputDir]  $OutputDir \033[0m"
 echo -e "\033[32m[Proxy]      ${Proxy:-None} \033[0m"
+echo -e "\033[32m[SimpleMode] ${SimpleMode:-false} \033[0m"
 echo -e "\n"
 
 # subfinder查找域名
@@ -107,11 +110,15 @@ echo -e "*****结束执行Dnsx*****\n"
 # dnsgen + alterx -> enum
 # https://github.com/AlephNullSK/dnsgen
 # https://github.com/projectdiscovery/alterx
-echo -e "*****开始执行(dnsgen + alterx)*****"
-cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
-cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
-cat $OutputDir/subs.enum.txt | dnsx -stats  -t 10 -rl 10 | anew $OutputDir/subs.txt
-echo -e "*****结束执行(dnsgen + alterx)*****\n"
+if [[ -z "$SimpleMode" ]]; then
+    echo -e "*****开始执行(dnsgen + alterx)*****"
+    cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
+    cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
+    cat $OutputDir/subs.enum.txt | dnsx -t 10 -rl 10 -stats | anew $OutputDir/subs.txt
+    echo -e "*****结束执行(dnsgen + alterx)*****\n"
+else
+    echo -e "\033[32m[SimpleMode] 跳过dnsgen + alterx操作 \033[0m"
+fi
 
 echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $OutputDir/subs.txt \033[0m"
 
