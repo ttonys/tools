@@ -113,4 +113,4 @@ echo -e "*****结束执行(dnsgen + alterx)*****\n"
 echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $OutputDir/subs.txt \033[0m"
 
 echo -e "\033[32m执行Slack通知 \033[0m"
-cat $OutputDir/subs.txt | anew $OutputDir/subs.notify.txt | notify -bulk
+cat $OutputDir/subs.txt | anew $OutputDir/subs.notify.txt | notify -bulk -id subs
