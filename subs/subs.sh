@@ -42,6 +42,10 @@ while getopts 'h:a:d:w:f:o:p:s' OPT; do
     esac
 done
 
+# 打印开始时间
+echo -e "*****开始执行脚本*****"
+date
+
 # 检查命令是否存在
 echo -e "*****开始执行参数检查*****"
 programExists subfinder
@@ -124,3 +128,7 @@ echo -e "\033[32m[Success]执行子域名挖掘结束, 子域名保存位置: $O
 
 echo -e "\033[32m执行Slack通知 \033[0m"
 cat $OutputDir/subs.txt | anew $OutputDir/subs.notify.txt | notify -bulk -id subs
+
+# 打印结束时间
+echo -e "*****脚本执行结束*****"
+date
