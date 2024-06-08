@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // 定义一个结构体来解析crt.sh的响应
@@ -44,6 +46,7 @@ func filterSubdomains(subdomains []string, domain string) []string {
 func main() {
 	// 定义命令行参数
 	domain := flag.String("d", "", "The domain to search for")
+	proxyAddr := flag.String("p", "", "The socks5 proxy address")
 	flag.Parse()
 
 	// 检查是否提供了域名参数
@@ -52,11 +55,32 @@ func main() {
 		return
 	}
 
+	// 创建 HTTP 客户端
+	var client *http.Client
+	if *proxyAddr != "" {
+		// 使用 socks5 代理
+		dialer, err := proxy.SOCKS5("tcp", *proxyAddr, nil, proxy.Direct)
+		if err != nil {
+			fmt.Println("Error creating socks5 proxy dialer:", err)
+			return
+		}
+		transport := &http.Transport{
+			Dial: dialer.Dial,
+		}
+		client = &http.Client{
+			Transport: transport,
+			Timeout:   10 * time.Second,
+		}
+	} else {
+		// 不使用代理
+		client = &http.Client{Timeout: 10 * time.Second}
+	}
+
 	// 构建查询URL
 	url := fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", *domain)
 
 	// 发送HTTP请求
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		fmt.Println("Error fetching data:", err)
 		return
