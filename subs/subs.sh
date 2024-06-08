@@ -9,7 +9,7 @@ func() {
     echo "-w 指定域名爆破字典 example: -w ~/subdomains-top1000.txt"
     echo "-o 指定文件保存路径 example: -o /path/to/output"
     echo "-p 指定SOCKS代理 example: -p socks5://127.0.0.1:1080"
-    echo "-simple 简单模式，不执行dnsgen + alterx操作"
+    echo "-s 简单模式，不执行dnsgen + alterx操作"
     exit 1
 }
 
@@ -30,13 +30,13 @@ function programExists() {
 }
 
 # 获取参数
-while getopts 'h:a:d:w:f:o:p:simple' OPT; do
+while getopts 'h:a:d:w:f:o:p:s' OPT; do
     case $OPT in
         d) Domain="$OPTARG";;
         w) WordList="$OPTARG";;
         o) OutputDir="$OPTARG";;
         p) Proxy="$OPTARG";;
-        simple) SimpleMode=true;;
+        s) SimpleMode=true;;
         h) func;;
         ?) func;;
     esac
@@ -110,7 +110,7 @@ echo -e "*****结束执行Dnsx*****\n"
 # dnsgen + alterx -> enum
 # https://github.com/AlephNullSK/dnsgen
 # https://github.com/projectdiscovery/alterx
-if [[ -z "$SimpleMode" ]]; then
+if [[ -n "$SimpleMode" ]]; then
     echo -e "*****开始执行(dnsgen + alterx)*****"
     cat $OutputDir/subs.txt | dnsgen - | anew -q $OutputDir/subs.enum.txt
     cat $OutputDir/subs.txt | alterx | anew -q $OutputDir/subs.enum.txt
