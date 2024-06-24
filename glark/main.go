@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	configFile = flag.String("config", "/User/sys71m/.config/glark/config.yaml", "Path to configuration file")
+	configFile = flag.String("config", "~/.config/glark/config.yaml", "Path to configuration file")
 	id         = flag.String("id", "", "ID of the Lark bot to use")
 	msg        = flag.String("msg", "", "Message to send")
 )
