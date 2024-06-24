@@ -81,3 +81,13 @@ out/
 go install github.com/ttonys/tools/crt@latest
 ```
 
+## glark飞书通知
+
+> 发送通知到飞书机器人
+
+#### 使用
+
+```
+go install github.com/ttonys/tools/glark@latest
+```
+
