@@ -4,32 +4,30 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/larksuite/oapi-sdk-go/v2"
+	lark "github.com/larksuite/oapi-sdk-go/v2"
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	configFile = flag.String("config", "~/.config/glark/config.yaml", "Path to configuration file")
-	id         = flag.String("id", "", "ID of the Lark bot to use")
-	msg        = flag.String("msg", "", "Message to send")
-)
+var configPath = filepath.Join(os.Getenv("HOME"), ".config/glark/config.yaml")
 
 type Config struct {
-	Lark []struct {
-		ID     string `yaml:"id"`
-		BotKey string `yaml:"botKey"`
-	} `yaml:"glark"`
+	Lark []LarkConfig `yaml:"lark"`
+}
+
+type LarkConfig struct {
+	ID     string `yaml:"id"`
+	BotKey string `yaml:"botKey"`
 }
 
 type TextPusher interface {
-	PushText(s string) error
-	PushMarkdown(title, content string) error
+	PushText(string) error
+	PushMarkdown(string, string) error
 }
 
 type Lark struct {
@@ -87,66 +85,74 @@ func (d *Lark) PushMarkdown(title, content string) error {
 	return nil
 }
 
-func loadConfig(path string) (Config, error) {
-	var cfg Config
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return cfg, fmt.Errorf("failed to read config file: %s", err)
-	}
-	err = yaml.Unmarshal(data, &cfg)
-	if err != nil {
-		return cfg, fmt.Errorf("failed to unmarshal config file: %s", err)
-	}
-	return cfg, nil
-}
-
-func findBotByID(cfg Config, id string) (string, error) {
-	for _, bot := range cfg.Lark {
-		if bot.ID == id {
-			return bot.BotKey, nil
+func loadConfig() (Config, error) {
+	var config Config
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		err := os.MkdirAll(filepath.Dir(configPath), 0755)
+		if err != nil {
+			return config, err
 		}
+		defaultConfig := Config{
+			Lark: []LarkConfig{
+				{ID: "subs", BotKey: "xxxxxx"},
+				{ID: "scan", BotKey: "xxxxxx"},
+			},
+		}
+		data, _ := yaml.Marshal(&defaultConfig)
+		os.WriteFile(configPath, data, 0644)
+		return defaultConfig, nil
 	}
-	return "", fmt.Errorf("bot with ID '%s' not found in config", id)
+
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return config, err
+	}
+
+	err = yaml.Unmarshal(data, &config)
+	return config, err
 }
 
 func main() {
+	id := flag.String("id", "", "The ID of the Lark bot to use")
+	title := flag.String("t", "title", "The title of the message")
+	msg := flag.String("msg", "", "The message to send")
 	flag.Parse()
 
-	if *id == "" {
-		log.Fatal("ID must be provided")
+	config, err := loadConfig()
+	if err != nil {
+		fmt.Printf("Error loading config: %v\n", err)
+		return
 	}
 
-	if *msg == "" {
-		// Check if there is input piped
-		stat, _ := os.Stdin.Stat()
-		if (stat.Mode() & os.ModeCharDevice) == 0 {
-			bytes, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				log.Fatalf("Failed to read from stdin: %s", err)
-			}
-			*msg = string(bytes)
-		} else {
-			log.Fatal("Message must be provided via -msg or piped input")
+	var botKey string
+	for _, larkConfig := range config.Lark {
+		if larkConfig.ID == *id {
+			botKey = larkConfig.BotKey
+			break
 		}
 	}
 
-	configPath := os.ExpandEnv(*configFile)
-	cfg, err := loadConfig(configPath)
-	if err != nil {
-		log.Fatalf("Failed to load config: %s", err)
+	if botKey == "" {
+		fmt.Printf("No bot found with ID: %s\n", *id)
+		return
 	}
 
-	botKey, err := findBotByID(cfg, *id)
-	if err != nil {
-		log.Fatalf("Failed to find bot ID: %s", err)
+	pusher := NewLark(botKey, "")
+
+	if *msg != "" {
+		err = pusher.PushMarkdown(*title, *msg)
+		if err != nil {
+			fmt.Printf("Error sending message: %v\n", err)
+		}
+	} else {
+		input, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Printf("Error reading stdin: %v\n", err)
+			return
+		}
+		err = pusher.PushMarkdown(*title, string(input))
+		if err != nil {
+			fmt.Printf("Error sending message: %v\n", err)
+		}
 	}
-
-	larkBot := NewLark(botKey, "")
-
-	err = larkBot.PushText(*msg)
-	if err != nil {
-		log.Fatalf("Failed to push message: %s", err)
-	}
-
-	fmt.Println("Message sent successfully")
 }
